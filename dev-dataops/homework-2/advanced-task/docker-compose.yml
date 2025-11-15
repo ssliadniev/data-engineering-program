@@ -1,0 +1,13 @@
+services:
+  webapp:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "${STREAMLIT_PORT}:${STREAMLIT_PORT}"
+    models:
+      - llm
+
+models:
+  llm:
+    model: ai/smollm2
