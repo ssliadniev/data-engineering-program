@@ -1,0 +1,40 @@
+# Postgres Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      name: postgres
+---
+# Server Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-service
+spec:
+  type: NodePort
+  selector:
+    app: server
+  ports:
+    - port: 8000
+      targetPort: 8000
+      nodePort: 30999
+---
+# Client Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-service
+spec:
+  type: NodePort
+  selector:
+    app: client
+  ports:
+    - port: 4173
+      targetPort: 4173
+      nodePort: 30172

@@ -1,0 +1,73 @@
+# Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+  labels:
+    app: server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: server
+  template:
+    metadata:
+      labels:
+        app: server
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            [
+              "sh",
+              "-c",
+              "until nc -z -w 2 postgres 5432; do echo 'Waiting for postgres...'; sleep 2; done;",
+            ]
+      containers:
+        - name: server
+          image: sliadniev/todo-server-image:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          envFrom:
+            - secretRef:
+                name: server-secret
+            - configMapRef:
+                name: server-config
+          command:
+            ["bash", "-c", "npx prisma migrate deploy && npx prisma db seed && npm start"]
+---
+
+# Client Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client
+  labels:
+    app: client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      labels:
+        app: client
+    spec:
+      containers:
+        - name: client
+          image: sliadniev/todo-client-image:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4173
+          envFrom:
+            - configMapRef:
+                name: client-config
+          command: ["bash", "-c", "npm run preview"]
