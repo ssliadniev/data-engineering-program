@@ -1,0 +1,23 @@
+# Postgres ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+data:
+  POSTGRES_DB: "docker_test_db"
+---
+# Server ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: server-config
+data:
+  PORT: "8000"
+---
+# Client ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: client-config
+data:
+  VITE_SERVER_URL: "http://192.168.49.2:30999"
