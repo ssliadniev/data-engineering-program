@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chat-config
+data:
+  STREAMLIT_PORT: "8050"
+  LLM_URL: "http://llm-service:80/engines/v1/"
+  LLM_MODEL: "ai/smollm2"
+  LLAMA_SERVER_PATH: "/app/bin"
+  PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  MODEL_RUNNER_SOCK: "/var/run/model-runner/model-runner.sock"
+  HOME: "/home/modelrunner"
+  MODELS_PATH: "/models"
+  MODEL_RUNNER_ENVIRONMENT: "moby"
+  LD_LIBRARY_PATH: "/app/lib"
