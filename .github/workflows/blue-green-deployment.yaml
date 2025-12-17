@@ -1,10 +1,10 @@
 name: CI/CD Blue-Green Deployment
 
 on:
+  workflow_dispatch:
+
   push:
     branches: [ "dev" ]
-    paths:
-      - "dev-dataops/homework-4/**"
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
