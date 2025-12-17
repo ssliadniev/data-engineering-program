@@ -39,7 +39,7 @@ jobs:
           cd app
           pytest test_hello.py
 
-      # Build and push docker image
+      # Build & push docker image
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
         with:
