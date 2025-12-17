@@ -33,11 +33,11 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r app/requirements.txt
-          pip install pytest
 
       - name: Run Tests
         run: |
-          pytest app/test_hello.py
+          cd app
+          pytest test_hello.py
 
       # Build and push docker image
       - name: Authenticate to Google Cloud
