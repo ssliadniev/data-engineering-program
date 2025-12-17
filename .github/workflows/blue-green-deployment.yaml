@@ -3,16 +3,23 @@ name: CI/CD Blue-Green Deployment
 on:
   push:
     branches: [ "dev" ]
+    paths:
+      - "dev-dataops/homework-4/**"
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GKE_CLUSTER: ${{ secrets.GKE_CLUSTER_NAME }}
   GKE_ZONE: ${{ secrets.GKE_ZONE }}
   IMAGE_NAME: hello-gitops
+  WORK_DIR: dev-dataops/homework-4
 
 jobs:
   ci-build-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./dev-dataops/homework-4
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -21,7 +28,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
@@ -50,6 +57,10 @@ jobs:
   cd-blue-green:
     needs: ci-build-test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./dev-dataops/homework-4
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -91,12 +102,13 @@ jobs:
 
           # Update kustomization
           cat <<EOF > kustomization.yaml
+    
           apiVersion: kustomize.config.k8s.io/v1beta1
           kind: Kustomization
           resources:
-          - deployment.yaml
-          - service.yaml
-          - ingress.yaml
+          - k8s/deployment.yaml
+          - k8s/service.yaml
+          - k8s/ingress.yaml
           namespace: hello-gitops
           nameSuffix: -$NEW_COLOR
           commonLabels:
