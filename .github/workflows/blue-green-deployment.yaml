@@ -6,6 +6,9 @@ on:
   push:
     branches: [ "dev" ]
 
+permissions:
+  contents: write
+
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GKE_CLUSTER: ${{ secrets.GKE_CLUSTER_NAME }}
@@ -134,7 +137,7 @@ jobs:
               echo "Deleting old deployment: hello-gitops-$OLD_COLOR"
               kubectl delete deployment hello-gitops-$OLD_COLOR -n hello-gitops
           else
-              echo "Old deployment not found."
+              echo "Old deployment not found (First run?), skipping delete."
           fi
 
         # Commit state
