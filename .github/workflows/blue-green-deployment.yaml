@@ -92,25 +92,24 @@ jobs:
             NEW_COLOR="green"
             OLD_COLOR="blue"
           else
-            # Default to blue if current is green or none (first run)
             NEW_COLOR="blue"
             OLD_COLOR="green"
           fi
 
-          echo "Current Color: $CURRENT_COLOR"
+          echo "Current color: $CURRENT_COLOR"
           echo "Deploying to: $NEW_COLOR"
 
-          # Update kustomization
+          sed "s/name: hello-gitops/name: hello-gitops-$NEW_COLOR/" k8s/deployment.yaml > deployment-temp.yaml
+          
           cat <<EOF > kustomization.yaml
-    
+
           apiVersion: kustomize.config.k8s.io/v1beta1
           kind: Kustomization
           resources:
-          - k8s/deployment.yaml
+          - deployment-temp.yaml
           - k8s/service.yaml
           - k8s/ingress.yaml
           namespace: hello-gitops
-          nameSuffix: -$NEW_COLOR
           commonLabels:
             color: $NEW_COLOR
           images:
@@ -135,7 +134,7 @@ jobs:
               echo "Deleting old deployment: hello-gitops-$OLD_COLOR"
               kubectl delete deployment hello-gitops-$OLD_COLOR -n hello-gitops
           else
-              echo "Old deployment not found, skipping delete."
+              echo "Old deployment not found."
           fi
 
         # Commit state
