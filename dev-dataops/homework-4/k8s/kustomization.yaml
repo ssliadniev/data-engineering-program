@@ -10,4 +10,4 @@ commonLabels:
 images:
 - name: hello-gitops
   newName: us-central1-docker.pkg.dev/mindful-phalanx-472718-e8/homework-4/hello-gitops
-  newTag: aa56a2b906d190c9cc96ea2ca2c9aed121959ece
+  newTag: 364783b31409e87749a38e7db035c716915cb168
