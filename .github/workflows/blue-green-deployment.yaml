@@ -1,10 +1,13 @@
 name: CI/CD Blue-Green Deployment
 
 on:
+  workflow_dispatch:
+
   push:
     branches: [ "dev" ]
-    paths:
-      - "dev-dataops/homework-4/**"
+
+permissions:
+  contents: write
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
@@ -24,7 +27,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Run unit tests
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -39,14 +41,13 @@ jobs:
           cd app
           pytest test_hello.py
 
-      # Build and push docker image
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Configure Docker
-        run: gcloud auth configure-docker
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
       - name: Build and Push Docker Image
         run: |
@@ -65,7 +66,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Setup kustomize
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@v2
 
@@ -80,37 +80,33 @@ jobs:
           cluster_name: ${{ env.GKE_CLUSTER }}
           location: ${{ env.GKE_ZONE }}
 
-        # Blue & green deployment
       - name: Execute Blue/Green Deployment
         run: |
           echo "Starting Blue/Green Deployment..."
-          
-          # Check current traffic
-          CURRENT_COLOR=$(kubectl get service hello-gitops -o=jsonpath='{.spec.selector.color}' 2>/dev/null || echo "none")
+
+          CURRENT_COLOR=$(kubectl get service hello-gitops -n hello-gitops -o=jsonpath='{.spec.selector.color}' 2>/dev/null || echo "none")
 
           if [ "$CURRENT_COLOR" == "blue" ]; then
             NEW_COLOR="green"
             OLD_COLOR="blue"
           else
-            # Default to blue if current is green or none (first run)
             NEW_COLOR="blue"
             OLD_COLOR="green"
           fi
 
-          echo "Current Color: $CURRENT_COLOR"
+          echo "Current color: $CURRENT_COLOR"
           echo "Deploying to: $NEW_COLOR"
 
-          # Update kustomization
-          cat <<EOF > kustomization.yaml
-    
+          sed "s/name: hello-gitops/name: hello-gitops-$NEW_COLOR/" k8s/deployment.yaml > k8s/deployment-active.yaml
+          
+          cat <<EOF > k8s/kustomization.yaml
           apiVersion: kustomize.config.k8s.io/v1beta1
           kind: Kustomization
           resources:
-          - k8s/deployment.yaml
-          - k8s/service.yaml
-          - k8s/ingress.yaml
+          - deployment-active.yaml
+          - service.yaml
+          - ingress.yaml
           namespace: hello-gitops
-          nameSuffix: -$NEW_COLOR
           commonLabels:
             color: $NEW_COLOR
           images:
@@ -119,31 +115,28 @@ jobs:
             newTag: ${{ github.sha }}
           EOF
 
-          # Deploy a new version
-          kubectl apply -k .
-          
+          kubectl apply -k k8s/
+
           # Wait for readiness
           echo "Waiting for deployment hello-gitops-$NEW_COLOR to be ready..."
           kubectl rollout status deployment/hello-gitops-$NEW_COLOR -n hello-gitops --timeout=60s
 
-          # Switch traffic
           echo "Switching traffic to $NEW_COLOR..."
           kubectl patch service hello-gitops -n hello-gitops -p "{\"spec\":{\"selector\":{\"color\":\"$NEW_COLOR\"}}}"
 
-          # Delete the old deployment
           if kubectl get deployment hello-gitops-$OLD_COLOR -n hello-gitops; then
               echo "Deleting old deployment: hello-gitops-$OLD_COLOR"
               kubectl delete deployment hello-gitops-$OLD_COLOR -n hello-gitops
           else
-              echo "Old deployment not found, skipping delete."
+              echo "Old deployment not found (first run?), skipping delete."
           fi
 
-        # Commit state
       - name: Commit State to Git
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
           
-          git add kustomization.yaml
+          git add k8s/kustomization.yaml k8s/deployment-active.yaml
+
           git commit -m "Deploy: Switched to ${{ github.sha }} ($NEW_COLOR) [skip ci]"
           git push

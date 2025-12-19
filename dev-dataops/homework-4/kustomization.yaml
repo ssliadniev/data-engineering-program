@@ -1,13 +1,14 @@
+
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-- deployment-active.yaml
-- service.yaml
-- ingress.yaml
+- deployment-temp.yaml
+- k8s/service.yaml
+- k8s/ingress.yaml
 namespace: hello-gitops
 commonLabels:
-  color: green
+  color: blue
 images:
 - name: hello-gitops
   newName: us-central1-docker.pkg.dev/mindful-phalanx-472718-e8/homework-4/hello-gitops
-  newTag: 9de6a256b6f370fe1470369f70d255100dcc85cb
+  newTag: 359af8f81e51459b98d685845ef4ec3a16365bba
