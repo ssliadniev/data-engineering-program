@@ -84,7 +84,7 @@ jobs:
         run: |
           echo "Starting Blue/Green Deployment..."
 
-          CURRENT_COLOR=$(kubectl get service hello-gitops -o=jsonpath='{.spec.selector.color}' 2>/dev/null || echo "none")
+          CURRENT_COLOR=$(kubectl get service hello-gitops -n hello-gitops -o=jsonpath='{.spec.selector.color}' 2>/dev/null || echo "none")
 
           if [ "$CURRENT_COLOR" == "blue" ]; then
             NEW_COLOR="green"
