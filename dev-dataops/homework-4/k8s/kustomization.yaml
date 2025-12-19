@@ -6,8 +6,8 @@ resources:
 - ingress.yaml
 namespace: hello-gitops
 commonLabels:
-  color: blue
+  color: green
 images:
 - name: hello-gitops
   newName: us-central1-docker.pkg.dev/mindful-phalanx-472718-e8/homework-4/hello-gitops
-  newTag: 364783b31409e87749a38e7db035c716915cb168
+  newTag: 9de6a256b6f370fe1470369f70d255100dcc85cb

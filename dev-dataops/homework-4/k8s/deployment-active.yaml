@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   labels:
     app: hello-gitops
-  name: hello-gitops-blue
+  name: hello-gitops-green
 spec:
   replicas: 1
   selector:
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - image: hello-gitops
-          name: hello-gitops-blue
+          name: hello-gitops-green
           ports:
             - name: http
               containerPort: 8050
